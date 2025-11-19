@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { INITIAL_STATE } from './constants';
 import { CoverLetterState, GeneratedResult } from './types';
-import { generateCoverLetter } from './services/geminiService';
+import { generateCoverLetter } from './services/openaiService';
 import InputPanel from './components/InputPanel';
 import PreviewPanel from './components/PreviewPanel';
 
