@@ -112,7 +112,7 @@ const InputPanel: React.FC<InputPanelProps> = ({ state, onChange, onGenerate, is
           <span className="bg-black text-white p-1.5 rounded-lg text-lg">CC</span>
           CoverCraft
         </h1>
-        <p className="text-sm text-slate-600 mt-1">AI-powered tailored letters</p>
+        <p className="text-sm text-slate-600 mt-1">For People who hate writing cover letters like me</p>
       </div>
 
       <div className="space-y-8 flex-1">
