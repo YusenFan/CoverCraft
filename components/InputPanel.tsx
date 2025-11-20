@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { CoverLetterState, Tone, Length, Language } from '../types';
 // @ts-ignore
 import * as mammoth from 'mammoth';
+// @ts-ignore
+import * as pdfjsLib from 'pdfjs-dist';
 
 interface InputPanelProps {
   state: CoverLetterState;
@@ -24,17 +26,32 @@ const InputPanel: React.FC<InputPanelProps> = ({ state, onChange, onGenerate, is
 
     try {
       if (file.type === 'application/pdf') {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const result = event.target?.result as string;
-          // Extract base64 part
-          const base64 = result.split(',')[1];
-          onChange('resumeData', base64);
-          onChange('resumeMimeType', 'application/pdf');
-          onChange('resumeText', ''); // Clear text so PDF is used
+        // Extract text from PDF instead of sending binary
+        const arrayBuffer = await file.arrayBuffer();
+        try {
+          // Set worker path for PDF.js
+          pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          let fullText = '';
+
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map((item: any) => item.str).join(' ');
+            fullText += pageText + '\n\n';
+          }
+
+          onChange('resumeText', fullText.trim());
+          onChange('resumeData', undefined);
+          onChange('resumeMimeType', undefined);
           setIsProcessingFile(false);
-        };
-        reader.readAsDataURL(file);
+        } catch (err) {
+          console.error("PDF parse error", err);
+          alert("Could not parse PDF file. Please try copying and pasting the text instead.");
+          setFileName(null);
+          setIsProcessingFile(false);
+        }
       } 
       else if (file.name.endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
         // Use mammoth for docx
@@ -77,15 +94,14 @@ const InputPanel: React.FC<InputPanelProps> = ({ state, onChange, onGenerate, is
 
   const handleTextChange = (val: string) => {
     onChange('resumeText', val);
-    if (val.length > 0 && state.resumeData) {
-      onChange('resumeData', undefined);
-      onChange('resumeMimeType', undefined);
+    // Clear file name if user starts typing over uploaded content
+    if (val.length > 0) {
       setFileName(null);
     }
   };
 
   // Validation: Resume is required. Either Company Name OR Job Link is required.
-  const hasResume = state.resumeText || state.resumeData;
+  const hasResume = state.resumeText;
   const hasJobTarget = (jobTab === 'manual' && state.companyName) || (jobTab === 'link' && state.jobLink);
   const canGenerate = hasResume && hasJobTarget && !isGenerating && !isProcessingFile;
 
@@ -206,17 +222,9 @@ const InputPanel: React.FC<InputPanelProps> = ({ state, onChange, onGenerate, is
                <span className="text-[10px] text-slate-400 font-normal uppercase">PDF, DOCX, TXT</span>
                <input type="file" accept=".pdf,.docx,.doc,.txt,.md" onChange={handleFileChange} className="hidden" disabled={isProcessingFile} />
              </label>
-             {fileName && state.resumeData && (
-               <p className="text-xs text-green-600 font-semibold text-center">✓ PDF Ready for Analysis</p>
+             {fileName && state.resumeText && (
+               <p className="text-xs text-green-600 font-semibold text-center">✓ File Loaded Successfully</p>
              )}
-          </div>
-          <div className="relative">
-            <textarea
-              value={state.resumeText}
-              onChange={(e) => handleTextChange(e.target.value)}
-              className="w-full h-32 p-3 border border-slate-300 rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none text-xs font-mono leading-relaxed resize-none bg-white text-black placeholder-slate-400"
-              placeholder={state.resumeData ? "PDF loaded. You can also type here to override." : "Or paste your resume text here..."}
-            />
           </div>
         </div>
 
