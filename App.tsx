@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { INITIAL_STATE } from './constants';
 import { CoverLetterState, GeneratedResult } from './types';
 import { generateCoverLetter } from './services/openaiService';
@@ -60,6 +61,7 @@ const App: React.FC = () => {
       <div className="md:hidden fixed bottom-4 right-4 bg-black/75 text-white text-xs px-3 py-1 rounded-full pointer-events-none z-50 no-print">
          Desktop recommended for printing
       </div>
+      <Analytics />
     </div>
   );
 };
