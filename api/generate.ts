@@ -32,17 +32,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const openai = new OpenAI({ apiKey });
 
-    const getSystemInstruction = (state: any) => `
+    // Determine if this is from the extension (has pageContent) or web app
+    const isExtensionRequest = !!state.pageContent;
+
+    const getSystemInstruction = (state: any) => {
+      const baseInstruction = `
 You are an expert career coach and professional writer.
 Your task is to write a flawless, human-sounding cover letter.
-The letter should be written in ${state.language}.
-The tone should be ${state.tone}.
-The length should be approximately ${state.length}.
+The letter should be written in ${state.language || 'English'}.
+The tone should be ${state.tone || 'Professional'}.
+The length should be approximately ${state.length || 'Standard (350 words)'}.
 
 EXTRACTION AND RESEARCH RULES:
-1. **Resume Analysis**: Analyze the attached resume/text. If the user's name is not expressly provided in the prompt, EXTRACT the candidate's full name from the resume.
-2. **Job Context**: If a Job Posting URL is provided, try to infer what you can about the company and position from the URL itself. If the Target Company or Target Position are not expressly provided, do your best to IDENTIFY them.
-3. **Company Research**: Use your knowledge about the company (if you know it) to understand their values and mission. Incorporate relevant details when appropriate.
+1. **Resume Analysis**: Analyze the resume text provided. EXTRACT the candidate's full name and contact information from the resume.
+2. **Job Context**: ${isExtensionRequest ? 'Analyze the PAGE CONTENT provided to identify the job position, company name, job requirements, and company culture.' : 'If a Job Posting URL is provided, infer what you can about the company and position.'}
+3. **Company Research**: Use your knowledge about the company to understand their values and mission. Incorporate relevant details when appropriate.
 
 FORMATTING RULES (Strictly Follow):
 1. **Format**: Use a standard professional business letter format.
@@ -55,30 +59,84 @@ FORMATTING RULES (Strictly Follow):
 6. **Closing**: YOU MUST use a proper formal closing.
    - Use "Sincerely,"
    - Followed by a blank line for signature
-   - Followed by the Candidate's Full Name (Extracted from resume or provided input).
-   - Do NOT use placeholders like "[Your Name]" if you can find the name in the resume.
+   - Followed by the Candidate's Full Name (Extracted from resume).
+   - Do NOT use placeholders like "[Your Name]".
 
 STYLE RULES:
 1. Ensure the text flows naturally and does not sound robotic.
-2. If the user provided additional instructions: "${state.additionalInstructions}", strictly follow them.
+2. If additional instructions are provided, strictly follow them.
+`;
+      return baseInstruction;
+    };
+
+    let textPrompt = '';
+
+    if (isExtensionRequest) {
+      // Extension mode: Use pageContent for job extraction
+      textPrompt = `
+TASK: Analyze the web page content below to extract job details, then write a tailored cover letter.
+
+PAGE URL: ${state.pageUrl || 'Not provided'}
+PAGE TITLE: ${state.pageTitle || 'Not provided'}
+
+PAGE CONTENT (scraped from job posting page):
+${state.pageContent.substring(0, 12000)}
+
+---
+
+CANDIDATE'S RESUME:
+${state.resumeText}
+
+---
+
+INSTRUCTIONS:
+1. First, analyze the PAGE CONTENT to identify:
+   - Company Name
+   - Job Title/Position
+   - Key requirements and qualifications
+   - Company values/culture (if mentioned)
+
+2. Then, write a professional cover letter that:
+   - Addresses the specific job requirements found in the page content
+   - Highlights relevant experience from the resume
+   - Shows enthusiasm for the specific company and role
+   - Is written in ${state.language || 'English'}
+
+Please write the cover letter now.
+`;
+    } else {
+      // Web app mode: Traditional approach
+      textPrompt = `
+INPUT DATA:
+My Name: ${state.fullName ? state.fullName : "(Please EXTRACT from Resume)"}
+Target Company: ${state.companyName ? state.companyName : "(Please EXTRACT from Job Description if possible)"}
+Target Position: ${state.jobTitle ? state.jobTitle : "(Please EXTRACT from Job Description if possible)"}
 `;
 
-    let textPrompt = `
-    INPUT DATA:
-    My Name: ${state.fullName ? state.fullName : "(Not provided - Please EXTRACT from Resume)"}
-    Target Company: ${state.companyName ? state.companyName : "(Not provided - Please EXTRACT from Job Link if possible)"}
-    Target Position: ${state.jobTitle ? state.jobTitle : "(Not provided - Please EXTRACT from Job Link if possible)"}
-  `;
+      if (state.jobLink) {
+        textPrompt += `\n\nJob Posting URL: ${state.jobLink}`;
+      }
 
-    if (state.jobLink) {
-      textPrompt += `\n\nJob Posting URL: ${state.jobLink}.\nNote: You don't have direct access to browse this URL, but please use the URL to infer company name and position if not provided above, and use any knowledge you have about this company.`;
+      if (state.jobDescription) {
+        textPrompt += `\n\nJOB DESCRIPTION:\n${state.jobDescription.substring(0, 8000)}`;
+        textPrompt += `\n\nIMPORTANT: Use the job description above to understand the role requirements. Match the candidate's experience to these specific requirements.`;
+      } else if (state.jobLink) {
+        textPrompt += `\nNote: Please use the URL to infer company name and position, and use any knowledge you have about this company.`;
+      }
+
+      textPrompt += `\n\nMy Resume Content:\n${state.resumeText}`;
+
+      if (state.additionalInstructions) {
+        textPrompt += `\n\nAdditional Instructions: ${state.additionalInstructions}`;
+      }
+
+      textPrompt += `\n\nPlease write the cover letter now based on the instructions.`;
     }
 
     const messages: any[] = [];
 
     if (state.resumeData) {
-      textPrompt += `\n\nPlease find my resume attached. Use this resume to extract my name, contact info, and analyze my experience.`;
-
+      // Handle image/PDF resume attachment (web app mode)
       const mimeType = state.resumeMimeType || 'application/pdf';
       const imageUrl = `data:${mimeType};base64,${state.resumeData}`;
 
@@ -96,9 +154,6 @@ STYLE RULES:
         ]
       });
     } else {
-      textPrompt += `\n\nMy Resume Content:\n${state.resumeText}`;
-      textPrompt += `\n\nPlease write the cover letter now based on the instructions.`;
-
       messages.push({
         role: "user",
         content: textPrompt

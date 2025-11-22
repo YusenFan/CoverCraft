@@ -6,20 +6,34 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:extension": "vite build --mode extension && npm run build:background && npm run copy-extension-files",
+    "build:background": "esbuild background.ts --bundle --outfile=dist/background.js --format=esm --target=chrome100",
+    "copy-extension-files": "cp manifest.json dist/ && mkdir -p dist/icons && (cp public/icons/*.png dist/icons/ 2>/dev/null || echo 'Warning: No PNG icons found. Please generate them first.') && cp node_modules/pdfjs-dist/build/pdf.worker.min.js dist/pdf.worker.min.js",
+    "generate-icons": "node generate-icons.cjs",
     "preview": "vite preview"
   },
   "dependencies": {
     "@vercel/analytics": "^1.5.0",
+    "detect-libc": "^2.1.2",
+    "html2pdf.js": "^0.12.1",
+    "jspdf": "^3.0.4",
     "mammoth": "1.6.0",
     "openai": "^6.9.1",
     "pdfjs-dist": "^3.11.174",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/chrome": "^0.0.268",
     "@types/node": "^22.14.0",
     "@vercel/node": "^5.5.7",
     "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.4.22",
+    "esbuild": "^0.20.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

@@ -24,7 +24,8 @@ export interface CoverLetterState {
   fullName: string;
   companyName: string;
   jobTitle: string;
-  jobLink?: string; // New field for job URL
+  jobLink?: string; // Job URL
+  jobDescription?: string; // Auto-extracted job description
   resumeText: string;
   resumeData?: string; // Base64 encoded string for PDF
   resumeMimeType?: string; // Mime type for uploaded file
@@ -42,4 +43,18 @@ export interface GeneratedResult {
 export enum AppStep {
   INPUTS = 0,
   PREVIEW = 1,
+}
+
+export interface ExtractedJobData {
+  jobTitle: string;
+  companyName: string;
+  jobDescription: string;
+  jobUrl: string;
+  source: string;
+}
+
+export interface JobDetectionState {
+  isDetecting: boolean;
+  detected: ExtractedJobData | null;
+  error: string | null;
 }

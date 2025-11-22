@@ -1,8 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { GeneratedResult } from '../types';
-
-// Declare html2pdf for TypeScript
-declare const html2pdf: any;
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
 
 interface PreviewPanelProps {
   result: GeneratedResult | null;
@@ -24,7 +23,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ result, isGenerating, lastU
   }, [result?.text]);
 
   const handleDownload = () => {
-    if (!paperRef.current || typeof html2pdf === 'undefined') {
+    if (!paperRef.current) {
         // Fallback
         window.print();
         return;

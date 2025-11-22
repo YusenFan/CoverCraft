@@ -5,6 +5,7 @@ export const INITIAL_STATE = {
   companyName: '',
   jobTitle: '',
   jobLink: '',
+  jobDescription: '',
   resumeText: '',
   resumeData: undefined,
   resumeMimeType: undefined,

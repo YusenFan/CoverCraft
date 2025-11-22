@@ -24,6 +24,8 @@ CoverCraft AI is an intelligent cover letter generator that helps job seekers cr
 - **Professional Formatting** – Clean, professional layout ready for download
 - **One-Click Export** – Download your cover letter as a PDF instantly
 - **Fast & Intuitive** – Beautiful, user-friendly interface built with React and TypeScript
+- **Chrome Extension** – Available as a side panel extension for seamless workflow while browsing jobs
+- **Smart Storage** – Auto-saves drafts and remembers preferences across sessions
 
 ---
 
@@ -71,7 +73,22 @@ Before you begin, make sure you have the following installed:
 
 - **`npm run dev`** – Start the development server with hot reload
 - **`npm run build`** – Build the production-ready application
+- **`npm run build:extension`** – Build as a Chrome extension
 - **`npm run preview`** – Preview the production build locally
+
+---
+
+## 🔌 Chrome Extension
+
+CoverCraft AI is also available as a Chrome extension! Use it as a side panel while browsing job postings.
+
+### Quick Start
+
+1. Generate icons (see `public/icons/README.md` or open `generate-icons-online.html`)
+2. Build the extension: `npm run build:extension`
+3. Load in Chrome: Go to `chrome://extensions/`, enable Developer Mode, and load the `dist/` folder
+
+For detailed instructions, see [EXTENSION.md](./EXTENSION.md).
 
 ---
 

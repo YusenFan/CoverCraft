@@ -29,9 +29,12 @@ const InputPanel: React.FC<InputPanelProps> = ({ state, onChange, onGenerate, is
         // Extract text from PDF instead of sending binary
         const arrayBuffer = await file.arrayBuffer();
         try {
-          // Set worker path for PDF.js
-          pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
-
+          // Use local worker file for Chrome extension, CDN for web
+          if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('pdf.worker.min.js');
+          } else {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          }
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
           let fullText = '';
 
