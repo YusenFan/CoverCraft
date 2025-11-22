@@ -1,0 +1,176 @@
+===============================================================================
+COVERCRAFT AI - CHROME WEB STORE PRIVACY PRACTICES JUSTIFICATIONS
+===============================================================================
+
+This document provides justifications for all required permissions and privacy
+practices for submitting CoverCraft AI to the Chrome Web Store.
+
+===============================================================================
+SINGLE PURPOSE DESCRIPTION
+===============================================================================
+
+CoverCraft AI is a cover letter generator that helps job seekers create
+professional, tailored cover letters. Users can upload their resume, and the
+extension automatically analyzes the current job posting page to extract job
+details, then generates a customized cover letter PDF for download.
+
+===============================================================================
+PERMISSION JUSTIFICATIONS
+===============================================================================
+
+-------------------------------------------------------------------------------
+1. activeTab Permission
+-------------------------------------------------------------------------------
+
+Purpose: To read the content of the current tab when the user clicks the
+extension icon.
+
+Justification: The activeTab permission is essential for our core functionality.
+When a user clicks the CoverCraft AI extension icon while viewing a job posting
+(on sites like LinkedIn, Indeed, Glassdoor, etc.), we need to read the page
+content to extract job details such as:
+- Job title
+- Company name
+- Job requirements and qualifications
+- Company culture information
+
+This permission is only activated when the user explicitly clicks our extension
+icon, ensuring we never access page content without user intent. We do NOT
+access any pages in the background or without user action.
+
+-------------------------------------------------------------------------------
+2. Host Permissions (<all_urls>)
+-------------------------------------------------------------------------------
+
+Purpose: To allow our extension to read job posting pages from any website.
+
+Justification: Job postings exist on hundreds of different websites including:
+- Major job boards (LinkedIn, Indeed, Glassdoor, ZipRecruiter, Monster)
+- Company career pages (any company's website)
+- Startup job boards (Wellfound, AngelList)
+- ATS systems (Greenhouse, Lever, Workday)
+- And many more
+
+Since job seekers apply to positions across all these varied domains, we need
+broad host permissions to read job posting content from any site the user visits.
+This permission is ONLY used when the user explicitly clicks our extension icon
+to generate a cover letter - we never access pages automatically or in the
+background.
+
+We also need to make API calls to our backend server at
+https://covercraft-ai-ivory.vercel.app/ to process the cover letter generation
+using AI.
+
+-------------------------------------------------------------------------------
+3. Scripting Permission
+-------------------------------------------------------------------------------
+
+Purpose: To execute a content script that extracts text content from the
+current job posting page.
+
+Justification: The scripting permission allows us to run a small script on the
+current page that:
+1. Reads the visible text content of the job posting
+2. Cleans up the text (removes navigation, ads, etc.)
+3. Sends only the relevant job description text to our AI for analysis
+
+This script runs ONLY when the user clicks our extension icon. It does not:
+- Modify any page content
+- Inject any visible elements
+- Run automatically or in the background
+- Access any sensitive form data or passwords
+
+The script simply extracts the publicly visible text that the user is already
+viewing.
+
+-------------------------------------------------------------------------------
+4. Storage Permission
+-------------------------------------------------------------------------------
+
+Purpose: To save user preferences locally on their device.
+
+Justification: We use chrome.storage.local to store:
+1. User's preferred output language (English, Spanish, French, German, Chinese)
+
+This improves user experience by remembering their language preference across
+sessions. We do NOT store:
+- Personal information
+- Resume content (processed in memory only)
+- Job posting content
+- Generated cover letters
+- Any data that leaves the user's device
+
+All stored data remains entirely on the user's local device and is never
+transmitted to our servers.
+
+-------------------------------------------------------------------------------
+5. Remote Code / External API Use
+-------------------------------------------------------------------------------
+
+Purpose: To send job posting content and resume text to our AI server for
+cover letter generation.
+
+Justification: Our extension requires server-side AI processing because:
+1. Cover letter generation uses OpenAI's GPT-4 model, which requires API access
+2. The AI model is too large to run locally in a browser extension
+3. API keys must be kept secure on our server, not exposed in client code
+
+Data flow:
+1. User uploads resume (processed locally to extract text)
+2. User clicks "Generate" button
+3. Resume text + job posting text sent to our secure Vercel API endpoint
+4. Our server calls OpenAI to generate the cover letter
+5. Generated text returned to extension
+6. PDF created locally in the browser
+7. User downloads the PDF
+
+We do NOT:
+- Store user resumes on our servers
+- Store job posting content
+- Store generated cover letters
+- Share any user data with third parties (except OpenAI for generation)
+- Use data for any purpose other than generating the requested cover letter
+
+Our API endpoint: https://covercraft-ai-ivory.vercel.app/api/generate
+
+===============================================================================
+DATA USAGE CERTIFICATION
+===============================================================================
+
+I certify that CoverCraft AI:
+
+[ ] Does NOT sell user data to third parties
+[ ] Does NOT use or transfer user data for purposes unrelated to the item's
+    single purpose
+[ ] Does NOT use or transfer user data to determine creditworthiness or for
+    lending purposes
+[ ] Does NOT use or transfer user data for advertising purposes
+
+Data collected and purpose:
+- Resume text: Temporarily processed to generate cover letter (not stored)
+- Job posting text: Temporarily processed to extract job details (not stored)
+- Language preference: Stored locally to remember user preference
+
+===============================================================================
+PRIVACY POLICY
+===============================================================================
+
+A full privacy policy should be hosted at:
+https://covercraft-ai-ivory.vercel.app/privacy
+
+Key points to include:
+1. We collect resume and job posting text temporarily for processing
+2. Data is sent to OpenAI for AI generation (subject to OpenAI's privacy policy)
+3. No personal data is permanently stored on our servers
+4. Language preferences stored locally on user's device only
+5. We do not share, sell, or use data for advertising
+
+===============================================================================
+CONTACT INFORMATION
+===============================================================================
+
+Developer/Publisher Email: [Your email address]
+Support Email: [Your support email]
+Website: https://covercraft-ai-ivory.vercel.app/
+
+===============================================================================
