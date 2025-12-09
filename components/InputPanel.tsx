@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CoverLetterState, Tone, Length, Language } from '../types';
 // @ts-ignore
 import * as mammoth from 'mammoth';
@@ -13,6 +14,7 @@ interface InputPanelProps {
 }
 
 const InputPanel: React.FC<InputPanelProps> = ({ state, onChange, onGenerate, isGenerating }) => {
+  const navigate = useNavigate();
   const [fileName, setFileName] = useState<string | null>(null);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [jobTab, setJobTab] = useState<'manual' | 'link'>('link');
@@ -107,12 +109,26 @@ const InputPanel: React.FC<InputPanelProps> = ({ state, onChange, onGenerate, is
 
   return (
     <div className="h-full flex flex-col overflow-y-auto p-6 bg-white border-r border-slate-200 no-print">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-black flex items-center gap-2">
           <span className="bg-black text-white p-1.5 rounded-lg text-lg">CC</span>
           CoverCraft
         </h1>
         <p className="text-sm text-slate-600 mt-1">For People who hate writing cover letters like me</p>
+        
+        {/* Resume Optimizer Navigation Button */}
+        <button
+          onClick={() => navigate('/resume-optimizer')}
+          className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-emerald-700 text-sm font-semibold transition-all group"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Resume Optimizer</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+        </button>
       </div>
 
       <div className="space-y-8 flex-1">

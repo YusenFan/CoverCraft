@@ -1,6 +1,35 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from 'openai';
 
+// ============================================================
+// API Key Load Balancer - Round-robin across multiple keys
+// ============================================================
+let openaiKeyIndex = 0;
+
+function getOpenAIKey(): string {
+  // Try comma-separated keys first (OPENAI_API_KEYS=key1,key2,key3)
+  const multiKey = process.env.OPENAI_API_KEYS;
+  const singleKey = process.env.OPENAI_API_KEY;
+  
+  if (multiKey) {
+    const keys = multiKey.split(',').map(k => k.trim()).filter(k => k.length > 0);
+    if (keys.length === 0) {
+      throw new Error('No valid keys found in OPENAI_API_KEYS');
+    }
+    // Round-robin selection
+    const key = keys[openaiKeyIndex % keys.length];
+    openaiKeyIndex++;
+    console.log(`[LoadBalancer] Using OpenAI key ${(openaiKeyIndex % keys.length) + 1} of ${keys.length}`);
+    return key;
+  }
+  
+  if (singleKey) {
+    return singleKey;
+  }
+  
+  throw new Error('OPENAI_API_KEY or OPENAI_API_KEYS must be set');
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST requests
   if (req.method !== 'POST') {
@@ -17,17 +46,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
+  // Get a key from the pool (load-balanced)
+  let apiKey: string;
+  try {
+    apiKey = getOpenAIKey();
+  } catch (error: any) {
+    console.error('Failed to get API key:', error.message);
+    return res.status(500).json({ error: 'API Key is not configured' });
+  }
+
   try {
     const { state } = req.body;
 
     if (!state) {
       return res.status(400).json({ error: 'State is required' });
-    }
-
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      console.error('OPENAI_API_KEY is not set');
-      return res.status(500).json({ error: 'API Key is not configured' });
     }
 
     const openai = new OpenAI({ apiKey });
